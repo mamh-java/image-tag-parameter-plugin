@@ -8,3 +8,10 @@
 - v1.6
     * Add support for default value
     * Add additional envVar export to get imageTag without image name
+
+Snapshot
+- v1.7
+    * change to improve ordering of tag values for parameter
+    * add option to revere ordering
+    * add default credential used for the default registry
+    * change to move registry, credential and reverseOrder option into advanced configuration
