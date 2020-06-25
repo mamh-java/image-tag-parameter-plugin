@@ -1,5 +1,6 @@
 package io.jenkins.plugins.luxair;
 
+import hudson.util.VersionNumber;
 import kong.unirest.*;
 import kong.unirest.json.JSONObject;
 
@@ -25,9 +26,10 @@ public class ImageTag {
 
         String[] authService = getAuthService(registry);
         String token = getAuthToken(authService, image, user, password);
-        List<String> tags = getImageTagsFromRegistry(image, registry, token);
-        return tags.stream().filter(tag -> tag.matches(filter))
+        List<VersionNumber> tags = getImageTagsFromRegistry(image, registry, token);
+        return tags.stream().filter(tag -> tag.toString().matches(filter))
             .sorted(Collections.reverseOrder())
+            .map(VersionNumber::toString)
             .collect(Collectors.toList());
     }
 
@@ -71,7 +73,7 @@ public class ImageTag {
         } else {
             logger.info("No basic authentication");
         }
-        HttpResponse<JsonNode> response = request 
+        HttpResponse<JsonNode> response = request
             .queryString("service", service)
             .queryString("scope", "repository:" + image + ":pull")
             .asJson();
@@ -93,8 +95,8 @@ public class ImageTag {
         return token;
     }
 
-    private static List<String> getImageTagsFromRegistry(String image, String registry, String token) {
-        List<String> tags = new ArrayList<>();
+    private static List<VersionNumber> getImageTagsFromRegistry(String image, String registry, String token) {
+        List<VersionNumber> tags = new ArrayList<>();
         String url = registry + "/v2/{image}/tags/list";
 
         Unirest.config().reset();
@@ -107,10 +109,9 @@ public class ImageTag {
             logger.info("HTTP status: " + response.getStatusText());
             response.getBody().getObject()
                 .getJSONArray("tags")
-                .forEach(item -> tags.add(item.toString()));
+                .forEach(item -> tags.add(new VersionNumber(item.toString())));
         } else {
             logger.warning("HTTP status: " + response.getStatusText());
-            tags.add(" " + response.getStatusText() + " !");
         }
         Unirest.shutDown();
 
