@@ -5,7 +5,6 @@ import kong.unirest.*;
 import kong.unirest.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -22,13 +21,13 @@ public class ImageTag {
         throw new IllegalStateException("Utility class");
     }
 
-    public static List<String> getTags(String image, String registry, String filter, String user, String password) {
-
+    public static List<String> getTags(String image, String registry, String filter,
+                                       String user, String password, boolean reverseOrdering) {
         String[] authService = getAuthService(registry);
         String token = getAuthToken(authService, image, user, password);
         List<VersionNumber> tags = getImageTagsFromRegistry(image, registry, token);
         return tags.stream().filter(tag -> tag.toString().matches(filter))
-            .sorted(Collections.reverseOrder())
+            .sorted(!reverseOrdering ? VersionNumber.DESCENDING : VersionNumber::compareTo)
             .map(VersionNumber::toString)
             .collect(Collectors.toList());
     }

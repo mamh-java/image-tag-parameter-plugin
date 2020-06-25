@@ -37,16 +37,18 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private final String filter;
     private final String defaultTag;
     private final String credentialId;
+    private final boolean reverseOrder;
 
     @DataBoundConstructor
-    public ImageTagParameterDefinition(String name, String description, String defaultTag,
-                                       String image, String registry, String filter, String credentialId) {
+    public ImageTagParameterDefinition(String name, String description, String defaultTag, String image,
+                                       String registry, String filter, String credentialId, Boolean reverseOrder) {
         super(name, description);
         this.image = image;
         this.registry = StringUtil.isNotNullOrEmpty(registry) ? registry : config.getDefaultRegistry();
         this.filter = StringUtil.isNotNullOrEmpty(filter) ? filter : ".*";
         this.defaultTag = StringUtil.isNotNullOrEmpty(defaultTag) ? defaultTag : "";
         this.credentialId = StringUtil.isNotNullOrEmpty(credentialId) ? credentialId : "";
+        this.reverseOrder = reverseOrder != null && reverseOrder;
     }
 
     public String getImage() {
@@ -69,6 +71,10 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         return credentialId;
     }
 
+    public boolean isReverseOrder() {
+        return reverseOrder;
+    }
+
     public List<String> getTags() {
         List<String> imageTags;
         String user = "";
@@ -79,7 +85,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             user = credential.getUsername();
             password = credential.getPassword().getPlainText();
         }
-        imageTags = ImageTag.getTags(image, registry, filter, user, password);
+        imageTags = ImageTag.getTags(image, registry, filter, user, password, reverseOrder);
         return imageTags;
     }
 
@@ -110,7 +116,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         if (defaultValue instanceof ImageTagParameterValue) {
             ImageTagParameterValue value = (ImageTagParameterValue) defaultValue;
             return new ImageTagParameterDefinition(getName(), getDescription(), value.getImageTag(),
-                getImage(), getRegistry(), getFilter(), getCredentialId());
+                getImage(), getRegistry(), getFilter(), getCredentialId(), isReverseOrder());
         }
         return this;
     }
@@ -133,24 +139,25 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         @Nonnull
         public String getDisplayName() {
             return "Image Tag Parameter";
-        }        
+        }
 
+        @SuppressWarnings("unused")
         public String defaultRegistry() {
             return config.getDefaultRegistry();
         }
 
+        @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item context,
-                                                    @QueryParameter String credentialId,
-                                                    @QueryParameter String registry) {
+                                                    @QueryParameter String credentialId) {
             if (context == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
                 context != null && !context.hasPermission(Item.EXTENDED_READ)) {
                 logger.info("No permission to list credential");
                 return new StandardListBoxModel().includeCurrentValue(credentialId);
             }
             return new StandardListBoxModel()
-                    .includeEmptyValue()
-                    .includeAs(ACL.SYSTEM, context, StandardUsernameCredentials.class)
-                    .includeCurrentValue(credentialId);
+                .includeEmptyValue()
+                .includeAs(ACL.SYSTEM, context, StandardUsernameCredentials.class)
+                .includeCurrentValue(credentialId);
         }
     }
 }
