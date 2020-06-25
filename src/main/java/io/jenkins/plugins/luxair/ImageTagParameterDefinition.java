@@ -47,8 +47,18 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         this.registry = StringUtil.isNotNullOrEmpty(registry) ? registry : config.getDefaultRegistry();
         this.filter = StringUtil.isNotNullOrEmpty(filter) ? filter : ".*";
         this.defaultTag = StringUtil.isNotNullOrEmpty(defaultTag) ? defaultTag : "";
-        this.credentialId = StringUtil.isNotNullOrEmpty(credentialId) ? credentialId : "";
+        this.credentialId = getDefaultOrEmptyCredentialId(this.registry, credentialId);
         this.reverseOrder = reverseOrder != null && reverseOrder;
+    }
+
+    private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
+        if (registry.equals(config.getDefaultRegistry()) && !StringUtil.isNotNullOrEmpty(credentialId)) {
+            return config.getDefaultCredentialId();
+        } else if (StringUtil.isNotNullOrEmpty(credentialId)) {
+            return credentialId;
+        } else {
+            return "";
+        }
     }
 
     public String getImage() {
@@ -144,6 +154,11 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         @SuppressWarnings("unused")
         public String defaultRegistry() {
             return config.getDefaultRegistry();
+        }
+
+        @SuppressWarnings("unused")
+        public String defaultCredentialID() {
+            return config.getDefaultCredentialId();
         }
 
         @SuppressWarnings("unused")

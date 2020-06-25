@@ -15,24 +15,24 @@
     </f:entry>
 
     <f:entry title="${%Default Tag}" field="defaultTag">
-        <f:textbox default=""/>
-    </f:entry>
-
-    <f:entry title="${%Regitry URL}" field="registry">
-        <f:textbox default="${descriptor.defaultRegistry()}"/>
+        <f:textbox default="" />
     </f:entry>
 
     <f:entry title="${%Description}" field="description">
-        <f:textarea/>
-    </f:entry>
-
-    <f:entry title="${%Registry Credential ID}" field="credentialId">
-        <c:select/>
+        <f:textarea />
     </f:entry>
 
     <f:advanced>
+        <f:entry title="${%Registry URL}" field="registry">
+            <f:textbox default="${descriptor.defaultRegistry()}" />
+        </f:entry>
+
+        <f:entry title="${%Registry Credential ID}" field="credentialId">
+            <c:select default="${descriptor.defaultCredentialID()}" />
+        </f:entry>
+
         <f:entry title="${%Reverse Tag Ordering}" field="reverseOrder">
-            <f:checkbox/>
+            <f:checkbox />
         </f:entry>
     </f:advanced>
 
