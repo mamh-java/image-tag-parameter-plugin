@@ -8,11 +8,13 @@ This plungins allows you to define (container) image tags as parameter in you bu
 It use the Docker **Registry HTTP API V2** to list tags availaible for an image.
 
 ## Screenshots
-![Paremeter Type Selection](img/screen01.png)
+![Parameter Type Selection](img/screen01.png)
 
 ![Configuration](img/screen02.png)
 
 ![Image Selection](img/screen03.png)
+
+![Global Configuration](img/jenkinsConfig.png)
 
 ## Usage
 
@@ -37,6 +39,19 @@ pipeline {
   }
 }
 ```
+
+**Required Values (Minimal Definition)**
+```groovy
+parameters {
+  imageTag(name: 'DOCKER_IMAGE', image: 'jenkins/jenkins')
+}
+``` 
+
+### Global Configuration
+
+This Plugin allows a Jenkins admin to set a default registry in the Jenkins config, which will get used for any ImageTag parameter that does not overwrite the `registry` value in the parameter definition.
+It is also possible (as of v1.8) to define a default credential, which should get used alongside of that default registry.
+The default credential can be overwritten on a per parameter level just like the default registry.
 
 ### Exposed Environment Variables (and params, since version 1.6) 
 Based on default Jenkins behaviour you can use `params.imageTagParameterName` to access the value of `imageName:imageTag`,
