@@ -53,6 +53,17 @@ This Plugin allows a Jenkins admin to set a default registry in the Jenkins conf
 It is also possible (as of v1.7) to define a default credential, which should get used alongside of that default registry.
 The default credential can be overwritten on a per parameter level just like the default registry.
 
+#### JCasC (Jenkins Configuration as Code)
+
+```yaml
+unclassified:
+# ...
+  imageTagParameterConfiguration:
+    defaultRegistry: https://registry-1.docker.io
+    defaultCredentialId: ""
+# ... 
+```
+
 ### Exposed Environment Variables (and params, since version 1.6) 
 Based on default Jenkins behaviour you can use `params.imageTagParameterName` to access the value of `imageName:imageTag`,
 but since you most of the time only need the image tag by itself the plugin also exports some additional environment variables.
