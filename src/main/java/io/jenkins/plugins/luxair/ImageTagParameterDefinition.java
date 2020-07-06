@@ -40,8 +40,8 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private final boolean reverseOrder;
 
     @DataBoundConstructor
-    public ImageTagParameterDefinition(String name, String description, String defaultTag, String image,
-                                       String registry, String filter, String credentialId, Boolean reverseOrder) {
+    public ImageTagParameterDefinition(String name, String description, String image, String filter, String defaultTag,
+                                       String registry, String credentialId, Boolean reverseOrder) {
         super(name, description);
         this.image = image;
         this.registry = StringUtil.isNotNullOrEmpty(registry) ? registry : config.getDefaultRegistry();
@@ -125,8 +125,9 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     public ParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof ImageTagParameterValue) {
             ImageTagParameterValue value = (ImageTagParameterValue) defaultValue;
-            return new ImageTagParameterDefinition(getName(), getDescription(), value.getImageTag(),
-                getImage(), getRegistry(), getFilter(), getCredentialId(), isReverseOrder());
+            return new ImageTagParameterDefinition(getName(), getDescription(),
+                getImage(), getFilter(), value.getImageTag(),
+                getRegistry(), getCredentialId(), isReverseOrder());
         }
         return this;
     }
