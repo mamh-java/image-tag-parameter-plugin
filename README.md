@@ -4,8 +4,8 @@
 [Changelog](CHANGELOG.md)
 
 ## Introduction
-This plungins allows you to define (container) image tags as parameter in you builds.  
-It use the Docker **Registry HTTP API V2** to list tags availaible for an image.
+This plugin allows you to define (container) image tags as parameter in your builds.  
+It uses the Docker **Registry HTTP API V2** to list tags available for an image.
 
 ## Screenshots
 ![Parameter Type Selection](img/screen01.png)
