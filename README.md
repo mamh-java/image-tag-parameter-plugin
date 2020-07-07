@@ -64,6 +64,9 @@ unclassified:
 # ... 
 ```
 
+Configuring this plugins global config was available via JCasC since the addition of the global config in v1.2,
+but the `defaultCredentialId` value can only be configured with a ImageTagParam version equal or newer to v1.7.
+
 ### Exposed Environment Variables (and params, since version 1.6) 
 Based on default Jenkins behaviour you can use `params.imageTagParameterName` to access the value of `imageName:imageTag`,
 but since you most of the time only need the image tag by itself the plugin also exports some additional environment variables.
