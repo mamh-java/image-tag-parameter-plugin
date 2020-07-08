@@ -4,8 +4,7 @@ import hudson.util.VersionNumber;
 import kong.unirest.*;
 import kong.unirest.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -91,11 +90,7 @@ public class ImageTag {
         String token = "";
 
         if (type.equals("Basic")) {
-            try {
-                token = Base64.getEncoder().encodeToString((user + ":" + password).getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                logger.warning("UnsupportedEncodingException when creating basic token");
-            }
+            token = Base64.getEncoder().encodeToString((user + ":" + password).getBytes(StandardCharsets.UTF_8));
 
             return token;
         }
@@ -134,7 +129,8 @@ public class ImageTag {
         return token;
     }
 
-    private static List<VersionNumber> getImageTagsFromRegistry(String image, String registry, String[] authService, String token) {
+    private static List<VersionNumber> getImageTagsFromRegistry(String image, String registry,
+                                                                String[] authService, String token) {
         List<VersionNumber> tags = new ArrayList<>();
         String url = registry + "/v2/{image}/tags/list";
 
