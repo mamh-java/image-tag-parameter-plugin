@@ -11,6 +11,8 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
+import hudson.util.VersionNumber;
+import io.jenkins.plugins.luxair.model.TagContainer;
 import io.jenkins.plugins.luxair.util.StringUtil;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -24,6 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 
 public class ImageTagParameterDefinition extends SimpleParameterDefinition {
@@ -38,6 +41,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private final String defaultTag;
     private final String credentialId;
     private final boolean reverseOrder;
+    private String errorMsg = "";
 
     @DataBoundConstructor
     public ImageTagParameterDefinition(String name, String description, String image, String filter, String defaultTag,
@@ -85,8 +89,11 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         return reverseOrder;
     }
 
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
     public List<String> getTags() {
-        List<String> imageTags;
         String user = "";
         String password = "";
 
@@ -95,8 +102,16 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             user = credential.getUsername();
             password = credential.getPassword().getPlainText();
         }
-        imageTags = ImageTag.getTags(image, registry, filter, user, password, reverseOrder);
-        return imageTags;
+
+        TagContainer tagContainer = ImageTag.getTags(image, registry, filter, user, password, reverseOrder);
+        if (tagContainer.getErrorMsg().isPresent()) {
+            this.errorMsg = tagContainer.getErrorMsg().get();
+            return Collections.emptyList();
+        }
+
+        return tagContainer.getTags().stream()
+            .map(VersionNumber::toString)
+            .collect(Collectors.toList());
     }
 
     private StandardUsernamePasswordCredentials findCredential(String credentialId) {
