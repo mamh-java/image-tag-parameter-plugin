@@ -11,8 +11,8 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
-import hudson.util.VersionNumber;
-import io.jenkins.plugins.luxair.model.TagContainer;
+import io.jenkins.plugins.luxair.model.ErrorContainer;
+import io.jenkins.plugins.luxair.model.Ordering;
 import io.jenkins.plugins.luxair.util.StringUtil;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 
 public class ImageTagParameterDefinition extends SimpleParameterDefinition {
@@ -40,19 +39,19 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private final String filter;
     private final String defaultTag;
     private final String credentialId;
-    private final boolean reverseOrder;
+    private final Ordering tagOrder;
     private String errorMsg = "";
 
     @DataBoundConstructor
     public ImageTagParameterDefinition(String name, String description, String image, String filter, String defaultTag,
-                                       String registry, String credentialId, Boolean reverseOrder) {
+                                       String registry, String credentialId, Ordering tagOrder) {
         super(name, description);
         this.image = image;
         this.registry = StringUtil.isNotNullOrEmpty(registry) ? registry : config.getDefaultRegistry();
         this.filter = StringUtil.isNotNullOrEmpty(filter) ? filter : ".*";
         this.defaultTag = StringUtil.isNotNullOrEmpty(defaultTag) ? defaultTag : "";
         this.credentialId = getDefaultOrEmptyCredentialId(this.registry, credentialId);
-        this.reverseOrder = reverseOrder != null && reverseOrder;
+        this.tagOrder = tagOrder != null ? tagOrder : Ordering.NATURAL;
     }
 
     private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
@@ -85,12 +84,16 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         return credentialId;
     }
 
-    public boolean isReverseOrder() {
-        return reverseOrder;
+    public Ordering getTagOrder() {
+        return tagOrder;
     }
 
     public String getErrorMsg() {
         return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
     }
 
     public List<String> getTags() {
@@ -103,15 +106,10 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             password = credential.getPassword().getPlainText();
         }
 
-        TagContainer tagContainer = ImageTag.getTags(image, registry, filter, user, password, reverseOrder);
-        if (tagContainer.getErrorMsg().isPresent()) {
-            this.errorMsg = tagContainer.getErrorMsg().get();
-            return Collections.emptyList();
-        }
+        ErrorContainer<List<String>> errorContainer = ImageTag.getTags(image, registry, filter, user, password, tagOrder);
+        errorContainer.getErrorMsg().ifPresent(this::setErrorMsg);
 
-        return tagContainer.getTags().stream()
-            .map(VersionNumber::toString)
-            .collect(Collectors.toList());
+        return errorContainer.getValue();
     }
 
     private StandardUsernamePasswordCredentials findCredential(String credentialId) {
@@ -142,7 +140,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             ImageTagParameterValue value = (ImageTagParameterValue) defaultValue;
             return new ImageTagParameterDefinition(getName(), getDescription(),
                 getImage(), getFilter(), value.getImageTag(),
-                getRegistry(), getCredentialId(), isReverseOrder());
+                getRegistry(), getCredentialId(), getTagOrder());
         }
         return this;
     }

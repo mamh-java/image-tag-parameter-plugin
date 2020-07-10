@@ -1,12 +1,15 @@
 package io.jenkins.plugins.luxair;
 
 import hudson.util.VersionNumber;
-import io.jenkins.plugins.luxair.model.TagContainer;
+import io.jenkins.plugins.luxair.model.ErrorContainer;
+import io.jenkins.plugins.luxair.model.Ordering;
 import kong.unirest.*;
 import kong.unirest.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -23,22 +26,39 @@ public class ImageTag {
         throw new IllegalStateException("Utility class");
     }
 
-    public static TagContainer getTags(String image, String registry, String filter,
-                                       String user, String password, boolean reverseOrdering) {
+    public static ErrorContainer<List<String>> getTags(String image, String registry, String filter,
+                                                       String user, String password, Ordering ordering) {
+        ErrorContainer<List<String>> container = new ErrorContainer<>(Collections.emptyList());
+
         String[] authService = getAuthService(registry);
         String token = getAuthToken(authService, image, user, password);
-        TagContainer tagContainer = getImageTagsFromRegistry(image, registry, authService, token);
-        return filterTags(tagContainer, filter, reverseOrdering);
+        ErrorContainer<List<VersionNumber>> tags = getImageTagsFromRegistry(image, registry, authService, token);
+
+        if (tags.getErrorMsg().isPresent()) {
+            container.setErrorMsg(tags.getErrorMsg().get());
+            return container;
+        }
+
+        container.setValue(filterTags(tags.getValue(), filter, ordering));
+        return container;
     }
 
-    private static TagContainer filterTags(TagContainer container, String filter, boolean reverseOrdering) {
-        List<VersionNumber> tags = container.getTags();
-        container.setTags(
-            tags.stream()
-                .filter(tag -> tag.toString().matches(filter))
-                .sorted(!reverseOrdering ? VersionNumber.DESCENDING : VersionNumber::compareTo)
-                .collect(Collectors.toList()));
-        return container;
+    private static List<String> filterTags(List<VersionNumber> tags, String filter, Ordering ordering) {
+        logger.info("Ordering Tags according to: " + ordering);
+
+        if (ordering == Ordering.NATURAL || ordering == Ordering.REV_NATURAL) {
+            return tags.stream()
+                .map(VersionNumber::toString)
+                .filter(tag -> tag.matches(filter))
+                .sorted(ordering == Ordering.NATURAL ? Collections.reverseOrder() : String::compareTo)
+                .collect(Collectors.toList());
+        }
+
+        return tags.stream()
+            .filter(tag -> tag.toString().matches(filter))
+            .sorted(ordering == Ordering.ASC_VERSION ? VersionNumber::compareTo : VersionNumber.DESCENDING)
+            .map(VersionNumber::toString)
+            .collect(Collectors.toList());
     }
 
     private static String[] getAuthService(String registry) {
@@ -136,9 +156,9 @@ public class ImageTag {
         return token;
     }
 
-    private static TagContainer getImageTagsFromRegistry(String image, String registry,
-                                                         String[] authService, String token) {
-        TagContainer tagContainer = new TagContainer();
+    private static ErrorContainer<List<VersionNumber>> getImageTagsFromRegistry(String image, String registry,
+                                                                                String[] authService, String token) {
+        ErrorContainer<List<VersionNumber>> errorContainer = new ErrorContainer<>(new ArrayList<>());
         String url = registry + "/v2/{image}/tags/list";
 
         Unirest.config().reset();
@@ -151,13 +171,13 @@ public class ImageTag {
             logger.info("HTTP status: " + response.getStatusText());
             response.getBody().getObject()
                 .getJSONArray("tags")
-                .forEach(item -> tagContainer.addTagValue(new VersionNumber(item.toString())));
+                .forEach(item -> errorContainer.getValue().add(new VersionNumber(item.toString())));
         } else {
             logger.warning("HTTP status: " + response.getStatusText());
-            tagContainer.setErrorMsg("HTTP status: " + response.getStatusText());
+            errorContainer.setErrorMsg("HTTP status: " + response.getStatusText());
         }
         Unirest.shutDown();
 
-        return tagContainer;
+        return errorContainer;
     }
 }

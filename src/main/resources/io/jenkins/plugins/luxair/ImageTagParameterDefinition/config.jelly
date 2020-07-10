@@ -31,8 +31,8 @@
             <c:select default="${descriptor.defaultCredentialID()}" />
         </f:entry>
 
-        <f:entry title="${%Reverse Tag Ordering}" field="reverseOrder">
-            <f:checkbox />
+        <f:entry title="${%Tag Ordering}" field="tagOrder">
+            <f:enum>${it}</f:enum>
         </f:entry>
     </f:advanced>
 
