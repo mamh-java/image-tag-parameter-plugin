@@ -17,10 +17,7 @@ import io.jenkins.plugins.luxair.util.StringUtil;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -37,12 +34,18 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private final String image;
     private final String registry;
     private final String filter;
-    private final String defaultTag;
     private final String credentialId;
-    private final Ordering tagOrder;
+    private String defaultTag;
+    private Ordering tagOrder;
     private String errorMsg = "";
 
     @DataBoundConstructor
+    @SuppressWarnings("unused")
+    public ImageTagParameterDefinition(String name, String description, String image, String filter,
+                                       String registry, String credentialId) {
+        this(name, description, image, filter, "", registry, credentialId, config.getDefaultTagOrdering());
+    }
+
     public ImageTagParameterDefinition(String name, String description, String image, String filter, String defaultTag,
                                        String registry, String credentialId, Ordering tagOrder) {
         super(name, description);
@@ -52,16 +55,6 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         this.defaultTag = StringUtil.isNotNullOrEmpty(defaultTag) ? defaultTag : "";
         this.credentialId = getDefaultOrEmptyCredentialId(this.registry, credentialId);
         this.tagOrder = tagOrder != null ? tagOrder : config.getDefaultTagOrdering();
-    }
-
-    private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
-        if (registry.equals(config.getDefaultRegistry()) && !StringUtil.isNotNullOrEmpty(credentialId)) {
-            return config.getDefaultCredentialId();
-        } else if (StringUtil.isNotNullOrEmpty(credentialId)) {
-            return credentialId;
-        } else {
-            return "";
-        }
     }
 
     public String getImage() {
@@ -80,6 +73,12 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         return defaultTag;
     }
 
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setDefaultTag(String defaultTag) {
+        this.defaultTag = defaultTag;
+    }
+
     public String getCredentialId() {
         return credentialId;
     }
@@ -88,12 +87,28 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         return tagOrder;
     }
 
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setTagOrder(Ordering tagOrder) {
+        this.tagOrder = tagOrder;
+    }
+
     public String getErrorMsg() {
         return errorMsg;
     }
 
     public void setErrorMsg(String errorMsg) {
         this.errorMsg = errorMsg;
+    }
+
+    private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
+        if (registry.equals(config.getDefaultRegistry()) && !StringUtil.isNotNullOrEmpty(credentialId)) {
+            return config.getDefaultCredentialId();
+        } else if (StringUtil.isNotNullOrEmpty(credentialId)) {
+            return credentialId;
+        } else {
+            return "";
+        }
     }
 
     public List<String> getTags() {
