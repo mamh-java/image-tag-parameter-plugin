@@ -51,7 +51,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         this.filter = StringUtil.isNotNullOrEmpty(filter) ? filter : ".*";
         this.defaultTag = StringUtil.isNotNullOrEmpty(defaultTag) ? defaultTag : "";
         this.credentialId = getDefaultOrEmptyCredentialId(this.registry, credentialId);
-        this.tagOrder = tagOrder != null ? tagOrder : Ordering.NATURAL;
+        this.tagOrder = tagOrder != null ? tagOrder : config.getDefaultTagOrdering();
     }
 
     private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
@@ -166,13 +166,18 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         }
 
         @SuppressWarnings("unused")
-        public String defaultRegistry() {
+        public String getDefaultRegistry() {
             return config.getDefaultRegistry();
         }
 
         @SuppressWarnings("unused")
-        public String defaultCredentialID() {
+        public String getDefaultCredentialID() {
             return config.getDefaultCredentialId();
+        }
+
+        @SuppressWarnings("unused")
+        public Ordering getDefaultTagOrdering() {
+            return config.getDefaultTagOrdering();
         }
 
         @SuppressWarnings("unused")
