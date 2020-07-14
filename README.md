@@ -88,11 +88,12 @@ There are currently four options available:
 * **REV_NATURAL** or *Reverse Natural Ordering* ... the reverted version of **NATURAL**
 * **DSC_VERSION** or *Descending Versions* ... This will attempt to parse the gathered queried tags into `hudson.util.VersionNumber` 
 and order them descending.
-* **ASC_VERSION** op *Ascending Versions* ... just like **DSC_VERSION** only in reverse (aka. ascending sorted)
+* **ASC_VERSION** or *Ascending Versions* ... just like **DSC_VERSION** only in reverse (aka. ascending sorted)
 
-**NOTE** The [`hudson.util.VersionNumber`](https://github.com/jenkinsci/lib-version-number/blob/master/src/main/java/hudson/util/VersionNumber.java) 
+**NOTE** The Version Ordering should be used with care and represents a convenience functionality, it will NOT work with every images tags or every configuration! \
+The [`hudson.util.VersionNumber`](https://github.com/jenkinsci/lib-version-number/blob/master/src/main/java/hudson/util/VersionNumber.java) 
 may try to its best ability to parse a tag to a version, but as ImageTags don't require a format this might not yield an expected result,
- so make sure to use a tag order that fits best for the tags you offer via a given job parameter.
+so make sure to use a tag order that fits best for the tags you offer via a given job parameter.
 
 ## Contributing
 

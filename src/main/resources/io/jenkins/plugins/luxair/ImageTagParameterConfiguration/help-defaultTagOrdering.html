@@ -10,4 +10,13 @@
         <strong>Descending Versions</strong> ... attempts to pars the tags to a version and order them descending<br/>
         <strong>Ascending Versions</strong> ... attempts to pars the tags to a version and order them ascending<br/>
     </div>
+    <br/>
+    <div>
+        <strong>WARNING:</strong><br/>
+        Careful with Versioned ordering, this works best with <a href="https://semver.org/">semver</a> or maven version
+        compliant ImageTags, but won't work at all under certain circumstances!<br/>
+        The conversion from tags to versions can fail in certain cases and cause the sorting to fail, which will result in an
+        empty selection list.<br/>
+        In such a case the user will get notified about a parameter misconfiguration.
+    </div>
 </div>
