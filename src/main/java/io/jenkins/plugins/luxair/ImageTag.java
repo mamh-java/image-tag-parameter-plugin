@@ -39,26 +39,36 @@ public class ImageTag {
             return container;
         }
 
-        container.setValue(filterTags(tags.getValue(), filter, ordering));
+        ErrorContainer<List<String>> filterTags = filterTags(tags.getValue(), filter, ordering);
+        filterTags.getErrorMsg().ifPresent(container::setErrorMsg);
+        container.setValue(filterTags.getValue());
         return container;
     }
 
-    private static List<String> filterTags(List<VersionNumber> tags, String filter, Ordering ordering) {
+    private static ErrorContainer<List<String>> filterTags(List<VersionNumber> tags, String filter, Ordering ordering) {
+        ErrorContainer<List<String>> container = new ErrorContainer<>(Collections.emptyList());
         logger.info("Ordering Tags according to: " + ordering);
 
         if (ordering == Ordering.NATURAL || ordering == Ordering.REV_NATURAL) {
-            return tags.stream()
+            container.setValue(tags.stream()
                 .map(VersionNumber::toString)
                 .filter(tag -> tag.matches(filter))
                 .sorted(ordering == Ordering.NATURAL ? Collections.reverseOrder() : String::compareTo)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+        } else {
+            try {
+                container.setValue(tags.stream()
+                    .filter(tag -> tag.toString().matches(filter))
+                    .sorted(ordering == Ordering.ASC_VERSION ? VersionNumber::compareTo : VersionNumber.DESCENDING)
+                    .map(VersionNumber::toString)
+                    .collect(Collectors.toList()));
+            } catch (Exception ignore) {
+                logger.warning("Unable to cast ImageTags to versions! Versioned Ordering is not supported for this images tags.");
+                container.setErrorMsg("Unable to cast ImageTags to versions! Versioned Ordering is not supported for this images tags.");
+            }
         }
 
-        return tags.stream()
-            .filter(tag -> tag.toString().matches(filter))
-            .sorted(ordering == Ordering.ASC_VERSION ? VersionNumber::compareTo : VersionNumber.DESCENDING)
-            .map(VersionNumber::toString)
-            .collect(Collectors.toList());
+        return container;
     }
 
     private static String[] getAuthService(String registry) {
