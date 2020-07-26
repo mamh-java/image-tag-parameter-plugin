@@ -1,10 +1,12 @@
 package io.jenkins.plugins.luxair;
 
+import hudson.util.VersionNumber;
+import io.jenkins.plugins.luxair.model.ErrorContainer;
+import io.jenkins.plugins.luxair.model.Ordering;
 import kong.unirest.*;
 import kong.unirest.json.JSONObject;
 
-import java.io.UnsupportedEncodingException;
-
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -24,14 +26,49 @@ public class ImageTag {
         throw new IllegalStateException("Utility class");
     }
 
-    public static List<String> getTags(String image, String registry, String filter, String user, String password) {
+    public static ErrorContainer<List<String>> getTags(String image, String registry, String filter,
+                                                       String user, String password, Ordering ordering) {
+        ErrorContainer<List<String>> container = new ErrorContainer<>(Collections.emptyList());
 
         String[] authService = getAuthService(registry);
         String token = getAuthToken(authService, image, user, password);
-        List<String> tags = getImageTagsFromRegistry(image, registry, authService[0], token);
-        return tags.stream().filter(tag -> tag.matches(filter))
-            .sorted(Collections.reverseOrder())
-            .collect(Collectors.toList());
+        ErrorContainer<List<VersionNumber>> tags = getImageTagsFromRegistry(image, registry, authService[0], token);
+
+        if (tags.getErrorMsg().isPresent()) {
+            container.setErrorMsg(tags.getErrorMsg().get());
+            return container;
+        }
+
+        ErrorContainer<List<String>> filterTags = filterTags(tags.getValue(), filter, ordering);
+        filterTags.getErrorMsg().ifPresent(container::setErrorMsg);
+        container.setValue(filterTags.getValue());
+        return container;
+    }
+
+    private static ErrorContainer<List<String>> filterTags(List<VersionNumber> tags, String filter, Ordering ordering) {
+        ErrorContainer<List<String>> container = new ErrorContainer<>(Collections.emptyList());
+        logger.info("Ordering Tags according to: " + ordering);
+
+        if (ordering == Ordering.NATURAL || ordering == Ordering.REV_NATURAL) {
+            container.setValue(tags.stream()
+                .map(VersionNumber::toString)
+                .filter(tag -> tag.matches(filter))
+                .sorted(ordering == Ordering.NATURAL ? Collections.reverseOrder() : String::compareTo)
+                .collect(Collectors.toList()));
+        } else {
+            try {
+                container.setValue(tags.stream()
+                    .filter(tag -> tag.toString().matches(filter))
+                    .sorted(ordering == Ordering.ASC_VERSION ? VersionNumber::compareTo : VersionNumber.DESCENDING)
+                    .map(VersionNumber::toString)
+                    .collect(Collectors.toList()));
+            } catch (Exception ignore) {
+                logger.warning("Unable to cast ImageTags to versions! Versioned Ordering is not supported for this images tags.");
+                container.setErrorMsg("Unable to cast ImageTags to versions! Versioned Ordering is not supported for this images tags.");
+            }
+        }
+
+        return container;
     }
 
     private static String[] getAuthService(String registry) {
@@ -90,11 +127,7 @@ public class ImageTag {
         String token = "";
 
         if (type.equals("Basic")) {
-            try {
-                token = Base64.getEncoder().encodeToString((user + ":" + password).getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                logger.warning("UnsupportedEncodingException when creating basic token");
-            }
+            token = Base64.getEncoder().encodeToString((user + ":" + password).getBytes(StandardCharsets.UTF_8));
 
             return token;
         }
@@ -111,7 +144,7 @@ public class ImageTag {
         } else {
             logger.info("No basic authentication");
         }
-        HttpResponse<JsonNode> response = request 
+        HttpResponse<JsonNode> response = request
             .queryString("service", service)
             .queryString("scope", "repository:" + image + ":pull")
             .asJson();
@@ -133,8 +166,9 @@ public class ImageTag {
         return token;
     }
 
-    private static List<String> getImageTagsFromRegistry(String image, String registry, String authType, String token) {
-        List<String> tags = new ArrayList<>();
+    private static ErrorContainer<List<VersionNumber>> getImageTagsFromRegistry(String image, String registry,
+                                                                                String authType, String token) {
+        ErrorContainer<List<VersionNumber>> errorContainer = new ErrorContainer<>(new ArrayList<>());
         String url = registry + "/v2/{image}/tags/list";
 
         Unirest.config().reset();
@@ -147,13 +181,13 @@ public class ImageTag {
             logger.info("HTTP status: " + response.getStatusText());
             response.getBody().getObject()
                 .getJSONArray("tags")
-                .forEach(item -> tags.add(item.toString()));
+                .forEach(item -> errorContainer.getValue().add(new VersionNumber(item.toString())));
         } else {
             logger.warning("HTTP status: " + response.getStatusText());
-            tags.add(" " + response.getStatusText() + " !");
+            errorContainer.setErrorMsg("HTTP status: " + response.getStatusText());
         }
         Unirest.shutDown();
 
-        return tags;
+        return errorContainer;
     }
 }

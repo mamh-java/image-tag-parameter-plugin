@@ -18,16 +18,22 @@
         <f:textbox default="" />
     </f:entry>
 
-    <f:entry title="${%Regitry URL}" field="registry">
-        <f:textbox default="${descriptor.defaultRegistry()}" />
-    </f:entry>
-
-    <f:entry title="Description" field="description">
+    <f:entry title="${%Description}" field="description">
         <f:textarea />
     </f:entry>
 
-    <f:entry title="${%Registry Credential ID}" field="credentialId">
-		<c:select />
-	</f:entry>
+    <f:advanced>
+        <f:entry title="${%Registry URL}" field="registry">
+            <f:textbox default="${descriptor.getDefaultRegistry()}" />
+        </f:entry>
+
+        <f:entry title="${%Registry Credential ID}" field="credentialId">
+            <c:select default="${descriptor.getDefaultCredentialID()}" />
+        </f:entry>
+
+        <f:entry title="${%Tag Ordering}" field="tagOrder">
+            <f:enum default="${descriptor.getDefaultTagOrdering().name()}">${it}</f:enum>
+        </f:entry>
+    </f:advanced>
 
 </j:jelly>

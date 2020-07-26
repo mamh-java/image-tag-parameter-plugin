@@ -11,14 +11,13 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
+import io.jenkins.plugins.luxair.model.ErrorContainer;
+import io.jenkins.plugins.luxair.model.Ordering;
 import io.jenkins.plugins.luxair.util.StringUtil;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -35,18 +34,27 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private final String image;
     private final String registry;
     private final String filter;
-    private final String defaultTag;
     private final String credentialId;
+    private String defaultTag;
+    private Ordering tagOrder;
+    private String errorMsg = "";
 
     @DataBoundConstructor
-    public ImageTagParameterDefinition(String name, String description, String defaultTag,
-                                       String image, String registry, String filter, String credentialId) {
+    @SuppressWarnings("unused")
+    public ImageTagParameterDefinition(String name, String description, String image, String filter,
+                                       String registry, String credentialId) {
+        this(name, description, image, filter, "", registry, credentialId, config.getDefaultTagOrdering());
+    }
+
+    public ImageTagParameterDefinition(String name, String description, String image, String filter, String defaultTag,
+                                       String registry, String credentialId, Ordering tagOrder) {
         super(name, description);
         this.image = image;
         this.registry = StringUtil.isNotNullOrEmpty(registry) ? registry : config.getDefaultRegistry();
         this.filter = StringUtil.isNotNullOrEmpty(filter) ? filter : ".*";
         this.defaultTag = StringUtil.isNotNullOrEmpty(defaultTag) ? defaultTag : "";
-        this.credentialId = StringUtil.isNotNullOrEmpty(credentialId) ? credentialId : "";
+        this.credentialId = getDefaultOrEmptyCredentialId(this.registry, credentialId);
+        this.tagOrder = tagOrder != null ? tagOrder : config.getDefaultTagOrdering();
     }
 
     public String getImage() {
@@ -65,12 +73,45 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         return defaultTag;
     }
 
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setDefaultTag(String defaultTag) {
+        this.defaultTag = defaultTag;
+    }
+
     public String getCredentialId() {
         return credentialId;
     }
 
+    public Ordering getTagOrder() {
+        return tagOrder;
+    }
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setTagOrder(Ordering tagOrder) {
+        this.tagOrder = tagOrder;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
+
+    private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
+        if (registry.equals(config.getDefaultRegistry()) && !StringUtil.isNotNullOrEmpty(credentialId)) {
+            return config.getDefaultCredentialId();
+        } else if (StringUtil.isNotNullOrEmpty(credentialId)) {
+            return credentialId;
+        } else {
+            return "";
+        }
+    }
+
     public List<String> getTags() {
-        List<String> imageTags;
         String user = "";
         String password = "";
 
@@ -79,8 +120,11 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             user = credential.getUsername();
             password = credential.getPassword().getPlainText();
         }
-        imageTags = ImageTag.getTags(image, registry, filter, user, password);
-        return imageTags;
+
+        ErrorContainer<List<String>> errorContainer = ImageTag.getTags(image, registry, filter, user, password, tagOrder);
+        errorContainer.getErrorMsg().ifPresent(this::setErrorMsg);
+
+        return errorContainer.getValue();
     }
 
     private StandardUsernamePasswordCredentials findCredential(String credentialId) {
@@ -109,8 +153,9 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     public ParameterDefinition copyWithDefaultValue(ParameterValue defaultValue) {
         if (defaultValue instanceof ImageTagParameterValue) {
             ImageTagParameterValue value = (ImageTagParameterValue) defaultValue;
-            return new ImageTagParameterDefinition(getName(), getDescription(), value.getImageTag(),
-                getImage(), getRegistry(), getFilter(), getCredentialId());
+            return new ImageTagParameterDefinition(getName(), getDescription(),
+                getImage(), getFilter(), value.getImageTag(),
+                getRegistry(), getCredentialId(), getTagOrder());
         }
         return this;
     }
@@ -133,24 +178,35 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         @Nonnull
         public String getDisplayName() {
             return "Image Tag Parameter";
-        }        
+        }
 
-        public String defaultRegistry() {
+        @SuppressWarnings("unused")
+        public String getDefaultRegistry() {
             return config.getDefaultRegistry();
         }
 
+        @SuppressWarnings("unused")
+        public String getDefaultCredentialID() {
+            return config.getDefaultCredentialId();
+        }
+
+        @SuppressWarnings("unused")
+        public Ordering getDefaultTagOrdering() {
+            return config.getDefaultTagOrdering();
+        }
+
+        @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialIdItems(@AncestorInPath Item context,
-                                                    @QueryParameter String credentialId,
-                                                    @QueryParameter String registry) {
+                                                    @QueryParameter String credentialId) {
             if (context == null && !Jenkins.get().hasPermission(Jenkins.ADMINISTER) ||
                 context != null && !context.hasPermission(Item.EXTENDED_READ)) {
                 logger.info("No permission to list credential");
                 return new StandardListBoxModel().includeCurrentValue(credentialId);
             }
             return new StandardListBoxModel()
-                    .includeEmptyValue()
-                    .includeAs(ACL.SYSTEM, context, StandardUsernameCredentials.class)
-                    .includeCurrentValue(credentialId);
+                .includeEmptyValue()
+                .includeAs(ACL.SYSTEM, context, StandardUsernameCredentials.class)
+                .includeCurrentValue(credentialId);
         }
     }
 }
