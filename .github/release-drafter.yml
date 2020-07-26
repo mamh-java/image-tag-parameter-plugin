@@ -1,0 +1,3 @@
+_extends: .github
+tag-template: image-tag-parameter-$NEXT_MINOR_VERSION
+name-template: Image Tag Parameter v$NEXT_MINOR_VERSION 🌈
