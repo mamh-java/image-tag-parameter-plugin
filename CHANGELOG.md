@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## v1.8.1 (Jul 27, 2020)
+* allow '/' character in image name (needed for google registries)
+
 ## v1.8 (Jul 26, 2020)
 * change to improve ordering of tag values for parameter
 * add option to revere ordering
