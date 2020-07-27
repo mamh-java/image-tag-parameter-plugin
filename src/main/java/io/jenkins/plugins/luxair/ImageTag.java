@@ -169,13 +169,12 @@ public class ImageTag {
     private static ErrorContainer<List<VersionNumber>> getImageTagsFromRegistry(String image, String registry,
                                                                                 String authType, String token) {
         ErrorContainer<List<VersionNumber>> errorContainer = new ErrorContainer<>(new ArrayList<>());
-        String url = registry + "/v2/{image}/tags/list";
+        String url = registry + "/v2/" + image + "/tags/list";
 
         Unirest.config().reset();
         Unirest.config().enableCookieManagement(false).interceptor(errorInterceptor);
         HttpResponse<JsonNode> response = Unirest.get(url)
             .header("Authorization", authType + " " + token)
-            .routeParam("image", image)
             .asJson();
         if (response.isSuccess()) {
             logger.info("HTTP status: " + response.getStatusText());
