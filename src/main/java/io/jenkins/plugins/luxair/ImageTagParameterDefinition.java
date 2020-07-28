@@ -22,6 +22,7 @@ import org.kohsuke.stapler.*;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 
@@ -122,7 +123,12 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         }
 
         ErrorContainer<List<String>> errorContainer = ImageTag.getTags(image, registry, filter, user, password, tagOrder);
-        errorContainer.getErrorMsg().ifPresent(this::setErrorMsg);
+        Optional<String> optionalErrorMsg = errorContainer.getErrorMsg();
+        if (optionalErrorMsg.isPresent()) {
+            setErrorMsg(optionalErrorMsg.get());
+        } else {
+            setErrorMsg("");
+        }
 
         return errorContainer.getValue();
     }
