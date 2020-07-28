@@ -1,6 +1,9 @@
 Changelog
 ===
 
+## v1.8.2 (Jul 28, 2020)
+* fix non resetting Error Message
+
 ## v1.8.1 (Jul 27, 2020)
 * allow '/' character in image name (needed for google registries)
 
