@@ -11,8 +11,8 @@ import hudson.model.ParameterValue;
 import hudson.model.SimpleParameterDefinition;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
-import io.jenkins.plugins.luxair.model.ErrorContainer;
 import io.jenkins.plugins.luxair.model.Ordering;
+import io.jenkins.plugins.luxair.model.ResultContainer;
 import io.jenkins.plugins.luxair.util.StringUtil;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -122,15 +122,15 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             password = credential.getPassword().getPlainText();
         }
 
-        ErrorContainer<List<String>> errorContainer = ImageTag.getTags(image, registry, filter, user, password, tagOrder);
-        Optional<String> optionalErrorMsg = errorContainer.getErrorMsg();
+        ResultContainer<List<String>> resultContainer = ImageTag.getTags(image, registry, filter, user, password, tagOrder);
+        Optional<String> optionalErrorMsg = resultContainer.getErrorMsg();
         if (optionalErrorMsg.isPresent()) {
             setErrorMsg(optionalErrorMsg.get());
         } else {
             setErrorMsg("");
         }
 
-        return errorContainer.getValue();
+        return resultContainer.getValue();
     }
 
     private StandardUsernamePasswordCredentials findCredential(String credentialId) {

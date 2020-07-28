@@ -2,11 +2,11 @@ package io.jenkins.plugins.luxair.model;
 
 import java.util.Optional;
 
-public class ErrorContainer<V> {
+public class ResultContainer<V> {
     private String errorMsg = null;
     private V value;
 
-    public ErrorContainer(V defaultValue) {
+    public ResultContainer(V defaultValue) {
         this.value = defaultValue;
     }
 
