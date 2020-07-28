@@ -1,8 +1,8 @@
 package io.jenkins.plugins.luxair;
 
 import hudson.util.VersionNumber;
-import io.jenkins.plugins.luxair.model.ErrorContainer;
 import io.jenkins.plugins.luxair.model.Ordering;
+import io.jenkins.plugins.luxair.model.ResultContainer;
 import kong.unirest.*;
 import kong.unirest.json.JSONObject;
 
@@ -26,27 +26,27 @@ public class ImageTag {
         throw new IllegalStateException("Utility class");
     }
 
-    public static ErrorContainer<List<String>> getTags(String image, String registry, String filter,
-                                                       String user, String password, Ordering ordering) {
-        ErrorContainer<List<String>> container = new ErrorContainer<>(Collections.emptyList());
+    public static ResultContainer<List<String>> getTags(String image, String registry, String filter,
+                                                        String user, String password, Ordering ordering) {
+        ResultContainer<List<String>> container = new ResultContainer<>(Collections.emptyList());
 
         String[] authService = getAuthService(registry);
         String token = getAuthToken(authService, image, user, password);
-        ErrorContainer<List<VersionNumber>> tags = getImageTagsFromRegistry(image, registry, authService[0], token);
+        ResultContainer<List<VersionNumber>> tags = getImageTagsFromRegistry(image, registry, authService[0], token);
 
         if (tags.getErrorMsg().isPresent()) {
             container.setErrorMsg(tags.getErrorMsg().get());
             return container;
         }
 
-        ErrorContainer<List<String>> filterTags = filterTags(tags.getValue(), filter, ordering);
+        ResultContainer<List<String>> filterTags = filterTags(tags.getValue(), filter, ordering);
         filterTags.getErrorMsg().ifPresent(container::setErrorMsg);
         container.setValue(filterTags.getValue());
         return container;
     }
 
-    private static ErrorContainer<List<String>> filterTags(List<VersionNumber> tags, String filter, Ordering ordering) {
-        ErrorContainer<List<String>> container = new ErrorContainer<>(Collections.emptyList());
+    private static ResultContainer<List<String>> filterTags(List<VersionNumber> tags, String filter, Ordering ordering) {
+        ResultContainer<List<String>> container = new ResultContainer<>(Collections.emptyList());
         logger.info("Ordering Tags according to: " + ordering);
 
         if (ordering == Ordering.NATURAL || ordering == Ordering.REV_NATURAL) {
@@ -166,9 +166,9 @@ public class ImageTag {
         return token;
     }
 
-    private static ErrorContainer<List<VersionNumber>> getImageTagsFromRegistry(String image, String registry,
-                                                                                String authType, String token) {
-        ErrorContainer<List<VersionNumber>> errorContainer = new ErrorContainer<>(new ArrayList<>());
+    private static ResultContainer<List<VersionNumber>> getImageTagsFromRegistry(String image, String registry,
+                                                                                 String authType, String token) {
+        ResultContainer<List<VersionNumber>> resultContainer = new ResultContainer<>(new ArrayList<>());
         String url = registry + "/v2/" + image + "/tags/list";
 
         Unirest.config().reset();
@@ -180,13 +180,13 @@ public class ImageTag {
             logger.info("HTTP status: " + response.getStatusText());
             response.getBody().getObject()
                 .getJSONArray("tags")
-                .forEach(item -> errorContainer.getValue().add(new VersionNumber(item.toString())));
+                .forEach(item -> resultContainer.getValue().add(new VersionNumber(item.toString())));
         } else {
             logger.warning("HTTP status: " + response.getStatusText());
-            errorContainer.setErrorMsg("HTTP status: " + response.getStatusText());
+            resultContainer.setErrorMsg("HTTP status: " + response.getStatusText());
         }
         Unirest.shutDown();
 
-        return errorContainer;
+        return resultContainer;
     }
 }
