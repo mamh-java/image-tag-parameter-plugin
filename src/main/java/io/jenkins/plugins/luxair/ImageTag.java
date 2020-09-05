@@ -93,14 +93,14 @@ public class ImageTag {
             type = typeMatcher.group(1);
         }
 
-        if (type.equals("Basic")) {
+        if (type.equalsIgnoreCase("Basic")) {
             rtn[0] = "Basic";
             logger.info("AuthService: type=Basic");
 
             return rtn;
         }
 
-        if (type.equals("Bearer")) {
+        if (type.equalsIgnoreCase("Bearer")) {
             String pattern = "Bearer realm=\"(\\S+)\",service=\"(\\S+)\"";
             Matcher m = Pattern.compile(pattern).matcher(headerValue);
             if (m.find()) {
