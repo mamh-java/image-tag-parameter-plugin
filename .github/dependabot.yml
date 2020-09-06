@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "java:maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency_name: "org.jenkins-ci.main:jenkins-core"
