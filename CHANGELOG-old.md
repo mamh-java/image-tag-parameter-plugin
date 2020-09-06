@@ -1,6 +1,8 @@
 Changelog
 ===
 
+The CHANGELOG is now maintained on the GitHub releases page: [Releases](https://github.com/jenkinsci/image-tag-parameter-plugin/releases)
+
 ## v1.8.2 (Jul 28, 2020)
 * fix non resetting Error Message
 
