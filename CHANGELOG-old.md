@@ -3,6 +3,9 @@ Changelog
 
 The CHANGELOG is now maintained on the GitHub releases page: [Releases](https://github.com/jenkinsci/image-tag-parameter-plugin/releases)
 
+## v1.9.0 (Sep 06, 2020)
+* Ignore case sensitivity on authentication type checking
+
 ## v1.8.2 (Jul 28, 2020)
 * fix non resetting Error Message
 
