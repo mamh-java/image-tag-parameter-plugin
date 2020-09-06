@@ -1,6 +1,8 @@
 # Image Tag Parameter Plugin
 ![Logo](img/registry.png)
 
+[Changelog](CHANGELOG-old.md)
+
 [![Licence](https://img.shields.io/github/license/jenkinsci/image-tag-parameter-plugin.svg)](https://github.com/jenkinsci/image-tag-parameter-plugin/blob/master/LICENSE)
 [![Build Status](https://ci.jenkins.io/job/Plugins/job/image-tag-parameter-plugin/job/master/badge/icon)](https://ci.jenkins.io/job/Plugins/job/image-tag-parameter-plugin/job/master/)
 [![Contributors](https://img.shields.io/github/contributors/jenkinsci/image-tag-parameter-plugin.svg)](https://github.com/jenkinsci/image-tag-parameter-plugin/graphs/contributors)
