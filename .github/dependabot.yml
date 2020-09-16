@@ -7,4 +7,4 @@ updates:
       day: "wednesday"
       time: "10:00"
     ignore:
-      - dependency_name: "org.jenkins-ci.main:jenkins-core"
+      - dependency-name: "org.jenkins-ci.main:jenkins-core"
