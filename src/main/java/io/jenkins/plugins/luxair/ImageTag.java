@@ -49,23 +49,23 @@ public class ImageTag {
         ResultContainer<List<String>> container = new ResultContainer<>(Collections.emptyList());
         logger.info("Ordering Tags according to: " + ordering);
 
-        if (ordering == Ordering.NATURAL || ordering == Ordering.REV_NATURAL) {
-            container.setValue(tags.stream()
-                .map(VersionNumber::toString)
-                .filter(tag -> tag.matches(filter))
-                .sorted(ordering == Ordering.NATURAL ? Collections.reverseOrder() : String::compareTo)
-                .collect(Collectors.toList()));
-        } else {
+        if (ordering == Ordering.DSC_VERSION || ordering == Ordering.ASC_VERSION) {
             try {
                 container.setValue(tags.stream()
-                    .filter(tag -> tag.toString().matches(filter))
-                    .sorted(ordering == Ordering.ASC_VERSION ? VersionNumber::compareTo : VersionNumber.DESCENDING)
-                    .map(VersionNumber::toString)
-                    .collect(Collectors.toList()));
+                   .filter(tag -> tag.toString().matches(filter))
+                   .sorted(ordering == Ordering.ASC_VERSION ? VersionNumber::compareTo : VersionNumber.DESCENDING)
+                   .map(VersionNumber::toString)
+                   .collect(Collectors.toList()));
             } catch (Exception ignore) {
                 logger.warning("Unable to cast ImageTags to versions! Versioned Ordering is not supported for this images tags.");
                 container.setErrorMsg("Unable to cast ImageTags to versions! Versioned Ordering is not supported for this images tags.");
             }
+        } else {
+            container.setValue(tags.stream()
+               .map(VersionNumber::toString)
+               .filter(tag -> tag.matches(filter))
+               .sorted(ordering == Ordering.NATURAL ? Collections.reverseOrder() : String::compareTo)
+               .collect(Collectors.toList()));
         }
 
         return container;
