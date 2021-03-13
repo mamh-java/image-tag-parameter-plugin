@@ -101,7 +101,7 @@ public class ImageTag {
         }
 
         if (type.equalsIgnoreCase("Bearer")) {
-            String pattern = "Bearer realm=\"(\\S+)\",service=\"(\\S+)\"";
+            String pattern = "Bearer realm=\"(\\S+)\",service=\"(\[\S ]+)\"";
             Matcher m = Pattern.compile(pattern).matcher(headerValue);
             if (m.find()) {
                 rtn[0] = "Bearer";
