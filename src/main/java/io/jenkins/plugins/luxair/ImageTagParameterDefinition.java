@@ -85,7 +85,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     }
 
     public Ordering getTagOrder() {
-        return tagOrder;
+        return tagOrder != null ? tagOrder : Ordering.NATURAL;
     }
 
     @DataBoundSetter
@@ -122,7 +122,8 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
             password = credential.getPassword().getPlainText();
         }
 
-        ResultContainer<List<String>> resultContainer = ImageTag.getTags(image, registry, filter, user, password, tagOrder);
+        ResultContainer<List<String>> resultContainer = ImageTag
+            .getTags(image, registry, filter, user, password, getTagOrder());
         Optional<String> optionalErrorMsg = resultContainer.getErrorMsg();
         if (optionalErrorMsg.isPresent()) {
             setErrorMsg(optionalErrorMsg.get());
