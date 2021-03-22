@@ -46,3 +46,8 @@ see https://wiki.jenkins.io/display/JENKINS/Hosting+Plugins#HostingPlugins-Relea
 ```
 mvn release:prepare release:perform
 ```
+### If the release upload failed and need to retry
+```
+git checkout image-tag-parameter-1.10
+mvn deploy
+```
