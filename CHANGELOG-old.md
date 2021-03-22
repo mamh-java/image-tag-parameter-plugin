@@ -3,6 +3,15 @@ Changelog
 
 The CHANGELOG is now maintained on the GitHub releases page: [Releases](https://github.com/jenkinsci/image-tag-parameter-plugin/releases)
 
+## v1.10.0 (Mar 22, 2021)
+* Handle AWS ECR credentials (#28) @lancehudson
+* fix(ordering): In rare ocassions TagOrder was null and lead to unexpected behaviour (#25) @h1dden-da3m0n
+* authorize space in realm service name - fix JENKINS-65073 - (#49) @maduma
+* Update: Release Drafter config (depends on #14) (#15) @h1dden-da3m0n
+* Fix: dependabot config (#14) @h1dden-da3m0n
+* Bump release-drafter/release-drafter from v5.11.0 to v5.15.0 (#50) @dependabot
+* Bump unirest-java from 3.3.00 to 3.11.11 (#45) @dependabot
+
 ## v1.9.0 (Sep 06, 2020)
 * Ignore case sensitivity on authentication type checking
 
