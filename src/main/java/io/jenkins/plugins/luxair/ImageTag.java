@@ -127,9 +127,14 @@ public class ImageTag {
         String token = "";
 
         if (type.equals("Basic")) {
+          // The password from the AWS ECR Plugin already is converted to the basic auth token
+          if (user.equals("AWS")) {
+            return password;
+          } else {
             token = Base64.getEncoder().encodeToString((user + ":" + password).getBytes(StandardCharsets.UTF_8));
 
             return token;
+          }
         }
 
         String realm = authService[1];
