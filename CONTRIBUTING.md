@@ -33,7 +33,7 @@ Caused by: java.lang.NullPointerException
 ### test, build and package
 ```
 mvn verify
-mvn hpi:run
+mvn hpi:run [-Dhost=0.0.0.0]
 mvn package
 ```
 Plugin **./target/Image_Tag_Parameter.hpi** can be installed on any jenkins instance

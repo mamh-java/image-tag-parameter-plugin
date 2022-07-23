@@ -29,6 +29,7 @@ public class ImageTagParameterConfiguration extends GlobalConfiguration {
     private String defaultRegistry = DEFAULT_REGISTRY;
     private String defaultCredentialId = "";
     private Ordering defaultTagOrdering = Ordering.NATURAL;
+    private boolean defaultVerifySsl = true;
 
     public ImageTagParameterConfiguration() {
         load();

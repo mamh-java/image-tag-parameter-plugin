@@ -3,6 +3,14 @@ Changelog
 
 The CHANGELOG is now maintained on the GitHub releases page: [Releases](https://github.com/jenkinsci/image-tag-parameter-plugin/releases)
 
+## v2.0 (Jul 23, 2022)
+* Add option to disable SSL verification for self-signed registry certificates
+* Bump credentials from 2.5 to 1139.veb_9579fca_33b_
+* Bump unirest-java from 3.11.11 to 3.13.10 
+* Bump release-drafter/release-drafter from 5.15.0 to 5.20.0
+* Bump plugin from 3.50 to 4.43.1
+* Bump jenkins version from 2.164.3 to 2.346.1
+
 ## v1.10.0 (Mar 22, 2021)
 * Handle AWS ECR credentials (#28) @lancehudson
 * fix(ordering): In rare ocassions TagOrder was null and lead to unexpected behaviour (#25) @h1dden-da3m0n
