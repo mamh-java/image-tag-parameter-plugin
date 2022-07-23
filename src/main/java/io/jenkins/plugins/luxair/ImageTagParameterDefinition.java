@@ -39,6 +39,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
     private String defaultTag;
     private Ordering tagOrder;
     private String errorMsg = "";
+    private boolean verifySsl = true;
 
     @DataBoundConstructor
     @SuppressWarnings("unused")
@@ -102,6 +103,16 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         this.errorMsg = errorMsg;
     }
 
+    public boolean isVerifySsl() {
+		return verifySsl;
+	}
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")    
+	public void setVerifySsl(boolean verifySsl) {
+		this.verifySsl = verifySsl;
+	}
+
     private String getDefaultOrEmptyCredentialId(String registry, String credentialId) {
         if (registry.equals(config.getDefaultRegistry()) && !StringUtil.isNotNullOrEmpty(credentialId)) {
             return config.getDefaultCredentialId();
@@ -123,7 +134,7 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
         }
 
         ResultContainer<List<String>> resultContainer = ImageTag
-            .getTags(image, registry, filter, user, password, getTagOrder());
+            .getTags(image, registry, filter, user, password, getTagOrder(), verifySsl);
         Optional<String> optionalErrorMsg = resultContainer.getErrorMsg();
         if (optionalErrorMsg.isPresent()) {
             setErrorMsg(optionalErrorMsg.get());
