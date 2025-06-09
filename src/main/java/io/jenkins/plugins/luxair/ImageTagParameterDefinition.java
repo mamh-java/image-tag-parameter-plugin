@@ -1,5 +1,7 @@
 package io.jenkins.plugins.luxair;
 
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
@@ -8,6 +10,8 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
+import hudson.model.Queue;
+import hudson.model.queue.Tasks;
 import hudson.model.SimpleParameterDefinition;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
@@ -147,20 +151,18 @@ public class ImageTagParameterDefinition extends SimpleParameterDefinition {
 
     private StandardUsernamePasswordCredentials findCredential(String credentialId) {
         if (StringUtil.isNotNullOrEmpty(credentialId)) {
-            List<Item> items = Jenkins.get().getAllItems();
-            for (Item item : items) {
-                List<StandardUsernamePasswordCredentials> creds = CredentialsProvider.lookupCredentials(
-                    StandardUsernamePasswordCredentials.class,
-                    item,
-                    ACL.SYSTEM,
-                    Collections.emptyList());
-                for (StandardUsernamePasswordCredentials cred : creds) {
-                    if (cred.getId().equals(credentialId)) {
-                        return cred;
-                    }
-                }
+            Item context = null;
+
+            if (Stapler.getCurrentRequest() != null) {
+                context = Stapler.getCurrentRequest().findAncestorObject(Item.class);
             }
-            logger.warning("Cannot find credential for :" + credentialId + ":");
+            List<StandardUsernamePasswordCredentials> lookupCredentials = CredentialsProvider.lookupCredentials(
+                StandardUsernamePasswordCredentials.class,
+                context,
+                context instanceof Queue.Task ? Tasks.getAuthenticationOf((Queue.Task)context) : ACL.SYSTEM,
+                Collections.emptyList());
+            CredentialsMatcher allOf = CredentialsMatchers.allOf(CredentialsMatchers.withId(credentialId));
+            return CredentialsMatchers.firstOrNull(lookupCredentials, allOf);
         } else {
             logger.info("CredentialId is empty");
         }
